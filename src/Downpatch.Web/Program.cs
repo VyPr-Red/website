@@ -14,7 +14,9 @@ namespace Downpatch.Web
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.AddRazorComponents();
+            builder.Services
+                .AddRazorComponents()
+                .AddInteractiveServerComponents();
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddRouting();
             builder.Services.AddMemoryCache(o =>
@@ -112,7 +114,8 @@ namespace Downpatch.Web
             app.UseStaticFiles();
             app.MapRobots();
             app.MapSitemap();
-            app.MapRazorComponents<App>();
+            app.MapRazorComponents<App>()
+                .AddInteractiveServerRenderMode();
             using var scope = app.Services.CreateScope();
 
             var pages = scope.ServiceProvider.GetRequiredService<Downpatch.Web.Services.MarkdownPageService>();

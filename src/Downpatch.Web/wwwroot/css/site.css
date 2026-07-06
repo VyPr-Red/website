@@ -619,7 +619,7 @@ pre {
 }
 .docs-shell {
     display: grid;
-    grid-template-columns: 280px minmax(0, 1fr) 260px;
+    grid-template-columns: 280px minmax(0, 1fr) 360px;
     gap: 24px;
     padding: 24px 16px;
     max-width: 1440px;
@@ -629,20 +629,24 @@ pre {
 .docs-left,
 .docs-right {
     position: sticky;
-    top: 16px;
+    top: 24px;
     align-self: start;
-    height: calc(100vh - 32px);
-    overflow: auto;
+
+    max-height: calc(100vh - 32px);
+
+    overflow-y: auto;
+
     overscroll-behavior: contain;
     scrollbar-gutter: stable;
     scrollbar-width: auto;
     scrollbar-color: #7fa2c7 #0d1420;
-    border-right: 1px solid var(--border, #2b3440);
+
+    border-left: 1px solid rgba(255,255,255,.08);
 }
 
 .docs-right {
     border-right: 0;
-    border-left: 1px solid var(--border, #2b3440);
+    border-left: 1px solid rgba(255,255,255,.08);
 }
 
 .docs-left::-webkit-scrollbar,
@@ -662,9 +666,17 @@ pre {
     border: 2px solid #0d1420;
 }
 
-.docs-left-inner,
+.docs-left-inner {
+    padding: 12px 12px 24px;
+}
+
 .docs-right-inner {
-    padding: 12px 12px 24px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
 }
 
 .docs-left-title,
@@ -777,6 +789,7 @@ pre {
 }
 
 .docs-otp-item {
+    position: relative;
     margin: 2px 0;
 }
 
@@ -787,11 +800,35 @@ pre {
     text-decoration: none;
     font-size: 13px;
     opacity: 0.9;
+    transition: color .15s ease, background-color .15s ease;
 }
+
+.docs-otp-link:hover {
+    background: rgba(255,255,255,.05);
+}
+
+.docs-otp-link.active {
+    color: var(--accent);
+    font-weight: 700;
+    background: rgba(255,255,255,.06);
+}
+
+.docs-otp-link.active::before {
+    content: "";
+    position: absolute;
+    left: -12px;
+    top: 4px;
+    bottom: 4px;
+    width: 3px;
+    border-radius: 999px;
+    background: var(--accent);
+}
+
 .docs-otp-item.is-h3 .docs-otp-link {
     padding-left: 18px;
     opacity: 0.85;
 }
+
 .nav-group {
     display: block;
     padding: 8px 8px 6px;

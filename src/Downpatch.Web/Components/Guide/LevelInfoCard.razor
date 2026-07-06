@@ -1,0 +1,165 @@
+@using Downpatch.Web.Components.Guide.Models
+@using Microsoft.AspNetCore.Components.Web
+
+<div class="level-card">
+
+    <header class="level-header">
+
+        <div class="level-header-left">
+
+            @if (!string.IsNullOrWhiteSpace(Info.Game))
+            {
+                <div class="level-game">@Info.Game</div>
+            }
+
+            <h2 class="level-title">@Info.Title</h2>
+
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Info.MissionNumber))
+        {
+            <div class="level-mission-number">
+                @Info.MissionNumber
+            </div>
+        }
+
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(Info.HeroImage))
+    {
+        <img class="level-image"
+             src="@Info.HeroImage"
+             alt="@Info.Title" />
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Info.MapName))
+    {
+        <section class="level-section">
+
+            <div class="section-title">
+                Map
+            </div>
+
+            <div class="level-map-id">
+                @Info.MapName?.ToUpperInvariant()
+            </div>
+
+        </section>
+    }
+
+    @if (Info.Goals.Any())
+    {
+        <section class="level-section">
+            
+            <div class="section-title">
+                Goals
+            </div>
+
+            <div class="difficulty-toggle">
+
+                <button
+                    type="button"
+                    class="@(difficulty == "Easy" ? "active" : "")"
+                    @onclick="ShowEasy">
+                    Easy
+                </button>
+
+                <button
+                    type="button"
+                    class="@(difficulty == "Legendary" ? "active" : "")"
+                    @onclick="ShowLegendary">
+                    Legendary
+                </button>
+
+                <button
+                    type="button"
+                    class="@(difficulty == "LASO" ? "active" : "")"
+                    @onclick="ShowLASO">
+                    LASO
+                </button>
+
+            </div>
+
+            @foreach (var goal in Info.Goals)
+            {
+                <div class="goal-row">
+
+                    <div class="goal-name">
+                        <span class="goal-dot"
+                              style="@($"background:{goal.Accent}")"></span>
+
+                        <span>@goal.Label</span>
+                    </div>
+
+                    <div class="goal-time">
+
+                        <strong>
+
+                            @(difficulty switch
+                            {
+                                "Easy" => goal.Easy,
+                                "Legendary" => goal.Legendary,
+                                "LASO" => goal.Laso,
+                                _ => goal.Easy
+                            })
+
+                        </strong>
+
+                    </div>
+
+                </div>
+            }
+
+        </section>
+    }
+
+    <section class="level-section">
+
+        <div class="section-title">
+            Navigation
+        </div>
+
+        <div class="level-navigation">
+
+            @if (!string.IsNullOrWhiteSpace(Info.PreviousName))
+            {
+                <a class="nav-link" href="@Info.PreviousUrl">
+                    ← @Info.PreviousName
+                </a>
+            }
+
+            <div class="nav-current">
+                @Info.Title
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Info.NextName))
+            {
+                <a class="nav-link" href="@Info.NextUrl">
+                    @Info.NextName →
+                </a>
+            }
+
+        </div>
+
+    </section>
+
+</div>
+
+@code
+{
+    [Parameter]
+    public required LevelInfo Info { get; set; }
+
+    private void ShowEasy() => difficulty = "Easy";
+
+    private void ShowLegendary() => difficulty = "Legendary";
+
+    private void ShowLASO() => difficulty = "LASO";
+
+    private string difficulty = "Easy";
+
+    private void SetDifficulty(string value)
+    {
+        difficulty = value;
+    }
+}

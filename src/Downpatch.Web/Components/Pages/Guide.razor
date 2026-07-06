@@ -1,6 +1,9 @@
 ﻿@page "/guide/{**slug}"
 @using Downpatch.Web.Services
 @using Microsoft.AspNetCore.Components
+@using Downpatch.Web.Components.Guide
+@using Downpatch.Web.Components.Guide.Models
+@rendermode InteractiveServer
 @inject MarkdownPageService Pages
 @inject NavStore Nav
 @inject IHttpContextAccessor HttpContextAccessor
@@ -96,20 +99,48 @@ else
             </footer>
         </main>
 
-        <aside class="docs-right" aria-label="On this page">
+        <aside class="docs-right" aria-label="Guide sidebar">
+
             <div class="docs-right-inner">
-                <div class="docs-right-title">On this page</div>
+
+                @if (_levelInfo is not null)
+                {
+                    <LevelInfoCard Info="_levelInfo" />
+                }
+
+                <div class="docs-right-title">
+
+                    On this page
+
+                </div>
+
                 <nav>
+
                     <ul class="docs-otp">
+
                         @foreach (var h in _headings)
                         {
                             <li class="docs-otp-item @(h.Level == 3 ? "is-h3" : "")">
-                                <a class="docs-otp-link" href="@($"{_currentPath}#{h.Id}")" data-no-routing="true">@h.Text</a>
+
+                                <a
+                                    id="toc-@h.Id"
+                                    class="docs-otp-link"
+                                    href="@($"{_currentPath}#{h.Id}")"
+                                    data-no-routing="true">
+
+                                    @h.Text
+
+                                </a>
+
                             </li>
                         }
+
                     </ul>
+
                 </nav>
+
             </div>
+
         </aside>
     </div>
 }
@@ -129,6 +160,7 @@ else
 
     private string? _leaderboard;
     private string? _discord;
+    private LevelInfo? _levelInfo;
 
     private IReadOnlyList<NavNode> _toc = Array.Empty<NavNode>();
     private string _currentPath = "/guide";
@@ -159,6 +191,7 @@ else
             _noIndex = true;
             _leaderboard = null;
             _discord = null;
+            _levelInfo = null;
             _headings = new();
             return;
         }
@@ -175,6 +208,7 @@ else
         _description = GetFm(fm, "description");
         _leaderboard = GetFm(fm, "leaderboard");
         _discord = GetFm(fm, "discord");
+        _levelInfo = BuildLevelInfo(fm);
         if (string.IsNullOrWhiteSpace(_discord))
             _discord = GetFm(fm, "discordurl");
 
@@ -290,6 +324,81 @@ else
         }
 
         return new string(buf[..w]);
+    }
+    private static string Get(
+    IReadOnlyDictionary<string, string> fm,
+    string key)
+{
+    return fm.TryGetValue(key, out var value)
+        ? value
+        : "";
+}
+
+    private static LevelInfo? BuildLevelInfo(
+        IReadOnlyDictionary<string, string> fm)
+    {
+        if (!fm.ContainsKey("mission_number"))
+        return null;
+
+        return new LevelInfo
+        {
+            Title = Get(fm, "title"),
+
+            Game = Get(fm, "game"),
+
+            MissionNumber = Get(fm, "mission_number"),
+
+            MapName = Get(fm, "map_name"),
+
+            HeroImage = Get(fm, "hero_image"),
+
+            PreviousName = Get(fm, "previous_title"),
+
+            PreviousUrl = Get(fm, "previous_url"),
+
+            NextName = Get(fm, "next_title"),
+
+            NextUrl = Get(fm, "next_url"),
+
+            Goals =
+            [
+                new GoalInfo
+                {
+                    Label = "Beginner",
+                    Accent = "#44d27b",
+                    Easy = Get(fm,"goal_beginner_easy"),
+                    Legendary = Get(fm,"goal_beginner_legendary"),
+                    Laso = Get(fm,"goal_beginner_laso")
+                },
+
+                new GoalInfo
+                {
+                    Label = "Intermediate",
+                    Accent = "#1fb56a",
+                    Easy = Get(fm,"goal_intermediate_easy"),
+                    Legendary = Get(fm,"goal_intermediate_legendary"),
+                    Laso = Get(fm, "goal_intermediate_laso")
+                },
+
+                new GoalInfo
+                {
+                    Label = "Top 10",
+                    Accent = "#4cbcff",
+                    Easy = Get(fm,"goal_world_easy"),
+                    Legendary = Get(fm,"goal_world_legendary"),
+                    Laso = Get(fm, "goal_world_laso")
+                },
+
+                new GoalInfo
+                {
+                    Label = "IL Record",
+                    Accent = "#9d73ff",
+                    Easy = Get(fm,"goal_il_easy"),
+                    Legendary = Get(fm,"goal_il_legendary"),
+                    Laso = Get(fm, "goal_il_laso")
+                }
+            ]
+        };
     }
 
     private static string GetEditUrl(string? slug)
