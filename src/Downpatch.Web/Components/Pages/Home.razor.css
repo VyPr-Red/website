@@ -1,6 +1,12 @@
 .home-hero {
-    border-bottom: 1px solid var(--border);
-    background: var(--surface-2);
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255,255,255,.015),
+            rgba(255,255,255,0)
+        );
+
+    border-bottom: 1px solid rgba(255,255,255,.05);
 }
 
 .home-hero-inner {
@@ -41,28 +47,51 @@
 .home-action {
     display: inline-flex;
     align-items: center;
-    padding: .55rem .8rem;
-    border: 1px solid var(--border);
+    gap: .45rem;
+
+    padding: .65rem 1rem;
+
     border-radius: 999px;
+
     text-decoration: none;
+
     color: var(--text);
-    background: rgba(15,19,24,.55);
+
+    border: 1px solid var(--border);
+
+    background: rgba(255,255,255,.03);
+
+    transition:
+        background .18s ease,
+        border-color .18s ease,
+        transform .18s ease;
 }
 
 .home-action:hover {
-    border-color: #3a4656;
-    background: rgba(19,26,34,.65);
+    transform: translateY(-1px);
+
+    background: rgba(255,255,255,.05);
+
+    border-color: var(--border-strong);
+}
+
+.home-action.primary {
+    background: var(--accent);
+
+    color: #08111d;
+
+    border: 0;
+
+    font-weight: 700;
+}
+
+.home-action.primary:hover {
+    background: var(--accent-hover);
 }
 
 .home-action:focus-visible {
     outline: 3px solid var(--focus);
     outline-offset: 2px;
-}
-
-.home-action.primary {
-    border-color: #3a4656;
-    background: #141c26;
-    font-weight: 650;
 }
 
 .home-body {
@@ -78,15 +107,31 @@
 }
 
 .home-card {
-    border: 1px solid var(--border);
+    background: #1b2331;
+
+    border: 1px solid rgba(255,255,255,.06);
+
     border-radius: 12px;
-    background: var(--surface-2);
-    padding: 1rem;
+
+    padding: 1.25rem;
+
+    transition:
+        border-color .15s ease,
+        transform .15s ease;
+}
+
+.home-card:hover {
+    border-color: rgba(130,180,255,.18);
 }
 
 .home-h2 {
-    margin: 0 0 .6rem;
+    margin: 0 0 .85rem;
+
     font-size: 1.1rem;
+
+    font-weight: 700;
+
+    letter-spacing: -.02em;
 }
 
 .home-list {
@@ -95,7 +140,41 @@
 }
 
 .home-list li {
-    margin: .45rem 0;
+    margin: .7rem 0;
+
+    color: var(--muted);
+
+    line-height: 1.6;
+}
+
+.home-card,
+.docs-left,
+.docs-right,
+.docs-header {
+    position: relative;
+}
+
+.home-card::before,
+.docs-left::before,
+.docs-right::before,
+.docs-header::before {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    top: 0;
+
+    height: 1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(255,255,255,.08),
+            transparent
+        );
 }
 
 @media (max-width: 980px) {
