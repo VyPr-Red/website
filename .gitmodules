@@ -1,0 +1,3 @@
+[submodule "src/Downpatch.Web/content"]
+	path = src/Downpatch.Web/content
+	url = https://github.com/VyPr-Red/content.git
