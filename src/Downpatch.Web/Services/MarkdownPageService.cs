@@ -48,7 +48,9 @@ namespace Downpatch.Web.Services
 
             var title = fm.TryGetValue("title", out var t) && !string.IsNullOrWhiteSpace(t) ? t : entry.Slug;
             var htmlBody = Markdown.ToHtml(body, _pipeline);
+
             htmlBody = RewriteRelativeLinks(htmlBody, entry.Slug);
+            htmlBody = RewriteYoutubeEmbeds(htmlBody);
 
             page = new RenderedPage(
                 Slug: entry.Slug,
@@ -141,7 +143,56 @@ namespace Downpatch.Web.Services
             );
         }
 
+        private static string RewriteYoutubeEmbeds(string html)
+        {
+            return System.Text.RegularExpressions.Regex.Replace(
+                html,
+                @"<youtube\s+([^>]*)></youtube>",
+                match =>
+                {
+                    var attrs = match.Groups[1].Value;
 
+                    string? video = null;
+
+                    var idMatch = System.Text.RegularExpressions.Regex.Match(
+                        attrs,
+                        @"id=""([^""]+)"""
+                    );
+
+                    if (idMatch.Success)
+                    {
+                        video = idMatch.Groups[1].Value;
+                    }
+                    else
+                    {
+                        var urlMatch = System.Text.RegularExpressions.Regex.Match(
+                            attrs,
+                            @"url=""([^""]+)"""
+                        );
+
+                        if (urlMatch.Success)
+                        {
+                            video = ExtractYoutubeId(urlMatch.Groups[1].Value);
+                        }
+                    }
+
+                    if (string.IsNullOrWhiteSpace(video))
+                        return match.Value;
+
+                    return $"""
+        <div class="video-embed">
+            <iframe
+                src="https://www.youtube.com/embed/{video}"
+                title="YouTube video"
+                loading="lazy"
+                allowfullscreen>
+            </iframe>
+        </div>
+        """;
+                },
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase
+            );
+        }
         public readonly record struct RenderedPage(
             string Slug,
             string Title,
@@ -149,5 +200,19 @@ namespace Downpatch.Web.Services
             IReadOnlyDictionary<string, string> FrontMatter,
             DateTime LastModifiedUtc
         );
+
+        private static string? ExtractYoutubeId(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                return null;
+
+            var m = System.Text.RegularExpressions.Regex.Match(
+                url,
+                @"(?:youtu\.be/|youtube\.com/watch\?v=)([^&?/]+)",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase
+            );
+
+            return m.Success ? m.Groups[1].Value : null;
+        }
     }
 }

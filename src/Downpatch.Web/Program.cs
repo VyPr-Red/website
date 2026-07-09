@@ -35,8 +35,26 @@ namespace Downpatch.Web
             builder.Services.AddSingleton(sp =>
             {
                 var pipeline = new MarkdownPipelineBuilder()
-                    .DisableHtml()
+
+                    // GitHub-style heading IDs
                     .UseAutoIdentifiers(Markdig.Extensions.AutoIdentifiers.AutoIdentifierOptions.GitHub)
+
+                    // Enable nearly all standard Markdown + GFM features
+                    .UseAdvancedExtensions()
+
+                    // Better table support
+                    .UsePipeTables()
+                    .UseGridTables()
+
+                    // GitHub task lists
+                    .UseTaskLists()
+
+                    // ~~strikethrough~~, subscript, superscript
+                    .UseEmphasisExtras()
+
+                    // {#custom-id .class}
+                    .UseGenericAttributes()
+
                     .Build();
 
                 return pipeline;
