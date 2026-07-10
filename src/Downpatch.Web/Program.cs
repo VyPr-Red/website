@@ -86,6 +86,7 @@ namespace Downpatch.Web
                 {
                     ctx.Response.Headers["Content-Security-Policy"] =
                         "default-src 'self'; " +
+                        "frame-src https://www.youtube.com https://www.youtube-nocookie.com; " +
                         "base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; " +
                         "script-src 'self' 'unsafe-inline'; " +
                         "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " +

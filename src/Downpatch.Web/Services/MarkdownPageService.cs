@@ -47,10 +47,20 @@ namespace Downpatch.Web.Services
             var (fm, body) = ParseFrontMatter(markdown);
 
             var title = fm.TryGetValue("title", out var t) && !string.IsNullOrWhiteSpace(t) ? t : entry.Slug;
+            var placeholders = new Dictionary<string, string>();
+
+            body = RewriteStrategyBlocks(body, placeholders);
+
             var htmlBody = Markdown.ToHtml(body, _pipeline);
+
+            foreach (var pair in placeholders)
+            {
+                htmlBody = htmlBody.Replace(pair.Key, pair.Value);
+            }
 
             htmlBody = RewriteRelativeLinks(htmlBody, entry.Slug);
             htmlBody = RewriteYoutubeEmbeds(htmlBody);
+            htmlBody = RewriteCallouts(htmlBody);
 
             page = new RenderedPage(
                 Slug: entry.Slug,
@@ -153,7 +163,20 @@ namespace Downpatch.Web.Services
                     var attrs = match.Groups[1].Value;
 
                     string? video = null;
+                    string title = "YouTube video";
 
+                    // Optional title
+                    var titleMatch = System.Text.RegularExpressions.Regex.Match(
+                        attrs,
+                        @"title=""([^""]+)"""
+                    );
+
+                    if (titleMatch.Success)
+                    {
+                        title = System.Net.WebUtility.HtmlEncode(titleMatch.Groups[1].Value);
+                    }
+
+                    // id="..."
                     var idMatch = System.Text.RegularExpressions.Regex.Match(
                         attrs,
                         @"id=""([^""]+)"""
@@ -161,10 +184,11 @@ namespace Downpatch.Web.Services
 
                     if (idMatch.Success)
                     {
-                        video = idMatch.Groups[1].Value;
+                        video = $"https://www.youtube.com/embed/{idMatch.Groups[1].Value}";
                     }
                     else
                     {
+                        // url="..."
                         var urlMatch = System.Text.RegularExpressions.Regex.Match(
                             attrs,
                             @"url=""([^""]+)"""
@@ -172,7 +196,7 @@ namespace Downpatch.Web.Services
 
                         if (urlMatch.Success)
                         {
-                            video = ExtractYoutubeId(urlMatch.Groups[1].Value);
+                            video = ExtractYoutubeEmbedUrl(urlMatch.Groups[1].Value);
                         }
                     }
 
@@ -182,8 +206,8 @@ namespace Downpatch.Web.Services
                     return $"""
         <div class="video-embed">
             <iframe
-                src="https://www.youtube.com/embed/{video}"
-                title="YouTube video"
+                src="{video}"
+                title="{title}"
                 loading="lazy"
                 allowfullscreen>
             </iframe>
@@ -193,6 +217,132 @@ namespace Downpatch.Web.Services
                 System.Text.RegularExpressions.RegexOptions.IgnoreCase
             );
         }
+        private string RewriteStrategyBlocks(
+            string markdown,
+            Dictionary<string, string> placeholders)
+        {
+            return System.Text.RegularExpressions.Regex.Replace(
+                markdown,
+                @":::strategy\s*(.*?)\n\n(.*?):::",
+                match =>
+                {
+                    var header = match.Groups[1].Value;
+                    var body = match.Groups[2].Value.Trim();
+
+                    var data = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+                    foreach (var line in header.Split('\n'))
+                    {
+                        var trimmed = line.Trim();
+
+                        if (string.IsNullOrWhiteSpace(trimmed))
+                            continue;
+
+                        var colon = trimmed.IndexOf(':');
+
+                        if (colon <= 0)
+                            continue;
+
+                        data[trimmed[..colon].Trim()] =
+                            trimmed[(colon + 1)..].Trim();
+                    }
+
+                    string Get(string key) =>
+                        data.TryGetValue(key, out var value)
+                            ? System.Net.WebUtility.HtmlEncode(value)
+                            : "";
+
+                    var renderedBody = Markdown.ToHtml(body, _pipeline);
+
+                    var key = $"%%STRATEGY_{placeholders.Count}%%";
+
+                    placeholders[key] = $"""
+        <div class="strategy-card">
+
+            <div class="strategy-card-header">
+                <h3>{Get("title")}</h3>
+            </div>
+
+            <div class="strategy-card-meta">
+
+                <span>
+                    <strong>Difficulty:</strong>
+                    <span class="strategy-card-difficulty {DifficultyClass(Get("difficulty"))}">
+                        {Get("difficulty")}
+                    </span>
+                </span>
+
+                {(string.IsNullOrWhiteSpace(Get("time-save")) ? "" : $"<span><strong>Time Save:</strong> {Get("time-save")}</span>")}
+
+                {(string.IsNullOrWhiteSpace(Get("platform")) ? "" : $"<span><strong>Platform:</strong> {Get("platform")}</span>")}
+
+                {(string.IsNullOrWhiteSpace(Get("recommended")) ? "" : $"<span><strong>Recommended:</strong> {Get("recommended")}</span>")}
+
+                {(string.IsNullOrWhiteSpace(Get("consistency")) ? "" : $"<span><strong>Consistency:</strong> {Get("consistency")}</span>")}
+
+            </div>
+
+            <div class="strategy-card-content">
+                {renderedBody}
+            </div>
+
+        </div>
+        """;
+
+                    return key;
+                },
+                System.Text.RegularExpressions.RegexOptions.Singleline |
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        }
+
+        private static string DifficultyClass(string difficulty)
+        {
+            return difficulty.Trim().ToLowerInvariant() switch
+            {
+                "beginner" => "beginner",
+                "intermediate" => "intermediate",
+                "advanced" => "advanced",
+                "il only" => "il-only",
+                "experimental" => "experimental",
+                _ => ""
+            };
+        }
+        
+        private static string RewriteCallouts(string html)
+        {
+            return System.Text.RegularExpressions.Regex.Replace(
+                html,
+                @"<blockquote>\s*<p>\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(.*?)</p>(.*?)</blockquote>",
+                match =>
+                {
+                    var type = match.Groups[1].Value.ToLowerInvariant();
+                    var first = match.Groups[2].Value.Trim();
+                    var rest = match.Groups[3].Value;
+
+                    var title = type switch
+                    {
+                        "note" => "Note",
+                        "tip" => "Tip",
+                        "important" => "Important",
+                        "warning" => "Warning",
+                        "caution" => "Caution",
+                        _ => "Note"
+                    };
+
+                    return $"""
+        <div class="callout callout-{type}">
+            <div class="callout-title">{title}</div>
+            <div class="callout-body">
+                <p>{first}</p>
+                {rest}
+            </div>
+        </div>
+        """;
+                },
+                System.Text.RegularExpressions.RegexOptions.Singleline |
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        }
+
         public readonly record struct RenderedPage(
             string Slug,
             string Title,
@@ -201,18 +351,40 @@ namespace Downpatch.Web.Services
             DateTime LastModifiedUtc
         );
 
-        private static string? ExtractYoutubeId(string url)
+        private static string? ExtractYoutubeEmbedUrl(string url)
         {
             if (string.IsNullOrWhiteSpace(url))
                 return null;
 
-            var m = System.Text.RegularExpressions.Regex.Match(
-                url,
-                @"(?:youtu\.be/|youtube\.com/watch\?v=)([^&?/]+)",
-                System.Text.RegularExpressions.RegexOptions.IgnoreCase
-            );
+            var uri = new Uri(url);
 
-            return m.Success ? m.Groups[1].Value : null;
+            string? videoId = null;
+
+            if (uri.Host.Contains("youtu.be"))
+            {
+                videoId = uri.AbsolutePath.Trim('/');
+            }
+            else
+            {
+                var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                videoId = query["v"];
+            }
+
+            if (string.IsNullOrWhiteSpace(videoId))
+                return null;
+
+            var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
+
+            var t =
+                queryParams["t"] ??
+                queryParams["start"];
+
+            if (string.IsNullOrWhiteSpace(t))
+                return $"https://www.youtube.com/embed/{videoId}";
+
+            t = t.TrimEnd('s');
+
+            return $"https://www.youtube.com/embed/{videoId}?start={t}";
         }
     }
 }
