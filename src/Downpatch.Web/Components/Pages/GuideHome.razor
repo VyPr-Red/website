@@ -134,12 +134,19 @@
 
         foreach (var entry in Index.AllEntries)
         {
-            if (!IsOneLevelDeepGameIndex(entry.Slug))
-                continue;
-
             var routeSlug = ToRouteSlug(entry.Slug);
 
             if (!Pages.TryGetRendered(routeSlug, out var page))
+                continue;
+
+            // Only index pages become cards
+            if (!entry.Slug.EndsWith("/index", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            // Only pages with a square image become cards
+            var square = GetFm(page.FrontMatter, "square_image");
+
+            if (string.IsNullOrWhiteSpace(square))
                 continue;
 
             var title =
@@ -149,33 +156,19 @@
 
             var href = "/guide/" + routeSlug.Trim('/');
 
-            var square = GetFm(page.FrontMatter, "square_image");
-            var squarePath = !string.IsNullOrWhiteSpace(square)
-                ? ToContentPath(routeSlug, square!)
-                : null;
+            var squarePath = ToContentPath(routeSlug, square);
 
-            list.Add(new GuideCard(routeSlug, entry.Slug, title, href, squarePath));
+            list.Add(new GuideCard(
+                routeSlug,
+                entry.Slug,
+                title,
+                href,
+                squarePath));
         }
 
         return list
             .OrderBy(x => x.Title, StringComparer.OrdinalIgnoreCase)
             .ToList();
-    }
-
-    private static bool IsOneLevelDeepGameIndex(string slug)
-    {
-        slug = (slug ?? "").Trim('/');
-
-        if (!slug.StartsWith("guide/", StringComparison.OrdinalIgnoreCase))
-            return false;
-
-        if (!slug.EndsWith("/index", StringComparison.OrdinalIgnoreCase))
-            return false;
-
-        var rel = slug["guide/".Length..];      // e.g. "halo/index" or "halo/haloreach/index"
-        var segs = rel.Split('/', StringSplitOptions.RemoveEmptyEntries);
-
-        return segs.Length == 2;                // "<game>/index"
     }
 
     private static string ToRouteSlug(string fullSlug)

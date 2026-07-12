@@ -257,37 +257,60 @@ namespace Downpatch.Web.Services
                     var key = $"%%STRATEGY_{placeholders.Count}%%";
 
                     placeholders[key] = $"""
-        <div class="strategy-card">
+                    <div class="strategy-card">
 
-            <div class="strategy-card-header">
-                <h3>{Get("title")}</h3>
-            </div>
+                        <div class="strategy-card-header">
+                            <h3>{Get("title")}</h3>
+                        </div>
 
-            <div class="strategy-card-meta">
+                        <div class="strategy-card-meta">
 
-                <span>
-                    <strong>Difficulty:</strong>
-                    <span class="strategy-card-difficulty {DifficultyClass(Get("difficulty"))}">
-                        {Get("difficulty")}
-                    </span>
-                </span>
+                            <div class="strategy-card-label">Difficulty</div>
+                            <div class="strategy-card-value">
+                                <span class="strategy-card-difficulty {DifficultyClass(Get("difficulty"))}">
+                                    {Get("difficulty")}
+                                </span>
+                            </div>
 
-                {(string.IsNullOrWhiteSpace(Get("time-save")) ? "" : $"<span><strong>Time Save:</strong> {Get("time-save")}</span>")}
+                            <div class="strategy-card-label">Time Save</div>
+                            <div class="strategy-card-value strategy-time-save">
+                                <span class="strategy-time-value {TimeSaveClass(Get("time-save"))}">
+                                    {Get("time-save")}
+                                </span>
 
-                {(string.IsNullOrWhiteSpace(Get("platform")) ? "" : $"<span><strong>Platform:</strong> {Get("platform")}</span>")}
+                                {(string.IsNullOrWhiteSpace(Get("compared-to"))
+                                    ? ""
+                                    : $"<div class=\"strategy-time-subtext\">over {Get("compared-to")}</div>")}
+                            </div>
 
-                {(string.IsNullOrWhiteSpace(Get("recommended")) ? "" : $"<span><strong>Recommended:</strong> {Get("recommended")}</span>")}
+                            <div class="strategy-card-label">Platform</div>
+                            <div class="strategy-card-value">
+                                {Get("platform")}
+                            </div>
 
-                {(string.IsNullOrWhiteSpace(Get("consistency")) ? "" : $"<span><strong>Consistency:</strong> {Get("consistency")}</span>")}
+                            <div class="strategy-card-label">Input</div>
+                            <div class="strategy-card-value">
+                                {Get("input")}
+                            </div>
 
-            </div>
+                            <div class="strategy-card-label">Recommended</div>
+                            <div class="strategy-card-value">
+                                {Get("recommended")}
+                            </div>
 
-            <div class="strategy-card-content">
-                {renderedBody}
-            </div>
+                            <div class="strategy-card-label">Consistency</div>
+                            <div class="strategy-card-value strategy-consistency {ConsistencyClass(Get("consistency"))}">
+                                {Get("consistency")}
+                            </div>
 
-        </div>
-        """;
+                        </div>
+
+                        <div class="strategy-card-content">
+                            {renderedBody}
+                        </div>
+
+                    </div>
+                    """;
 
                     return key;
                 },
@@ -306,6 +329,46 @@ namespace Downpatch.Web.Services
                 "experimental" => "experimental",
                 _ => ""
             };
+        }
+
+        private static string TimeSaveClass(string value)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(value, @"\d+");
+
+            if (!match.Success)
+                return "";
+
+            var seconds = int.Parse(match.Value);
+
+            if (seconds >= 45)
+                return "legendary";
+
+            if (seconds >= 30)
+                return "major";
+
+            if (seconds >= 15)
+                return "great";
+
+            if (seconds >= 5)
+                return "good";
+
+            return "minor";
+        }
+
+        private static string ConsistencyClass(string consistency)
+        {
+            var digits = new string(consistency.Where(char.IsDigit).ToArray());
+
+            if (!int.TryParse(digits, out var value))
+                return "";
+
+            if (value >= 80)
+                return "high";
+
+            if (value >= 50)
+                return "medium";
+
+            return "low";
         }
         
         private static string RewriteCallouts(string html)

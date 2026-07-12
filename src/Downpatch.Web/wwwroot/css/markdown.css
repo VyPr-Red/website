@@ -89,75 +89,166 @@
    ========================================================== */
 
 .strategy-card {
-    margin: 1.75rem 0;
+    margin: 2rem 0;
     background: var(--surface-1);
     border: 1px solid var(--border);
     border-radius: 14px;
     overflow: hidden;
+    position:relative;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(28,35,52,.92) 0%,
+            rgba(22,28,41,.98) 100%);
+}
+
+.strategy-card::before{
+    width:2px;
+
+    background:rgba(90,169,255,.35);
+
+    border-radius:2px 0 0 2px;
 }
 
 .strategy-card-header {
-    padding: 1rem 1.25rem .5rem;
-}
-
-.strategy-card-header h3 {
-    margin: 0;
-}
-
-.strategy-card-meta {
     display: flex;
-    flex-wrap: wrap;
-    gap: .5rem;
-    padding: 0 1.25rem 1rem;
-}
-
-.strategy-card-meta span {
-    display: inline-flex;
+    justify-content: space-between;
     align-items: center;
-    gap: .35rem;
 
-    padding: .35rem .75rem;
-
-    border-radius: 999px;
-
-    background: rgba(255,255,255,.05);
-    border: 1px solid rgba(255,255,255,.08);
-
-    font-size: .85rem;
-    color: var(--text-muted);
+    padding:.85rem 1rem .4rem;
 }
 
-.strategy-card-meta strong {
-    color: var(--text);
-    font-weight: 600;
+.strategy-card-header h3{
+    margin:0;
+    font-size:1.45rem;
+    font-weight:650;
 }
 
-.strategy-card-content {
-    padding: 1.25rem;
-    border-top: 1px solid var(--border);
+.strategy-card-meta{
+    display:grid;
+    grid-template-columns:130px 1fr;
+
+    row-gap:.85rem;
+    column-gap:1rem;
+
+    max-width:520px;
+    
+    background:rgba(255,255,255,.02);
+
+    border:1px solid rgba(255,255,255,.05);
+
+    border-radius:10px;
+
+    padding:1rem;
+
+    margin:1rem;
+    margin-top:.35rem;
 }
 
-.strategy-card-content > :first-child {
-    margin-top: 0;
+.strategy-card-label{
+    font-size:.68rem;
+    letter-spacing:.12em;
+    font-weight:700;
+    color:var(--text-muted);
+
+    margin-bottom:.15rem;
 }
 
-.strategy-card-content > :last-child {
-    margin-bottom: 0;
+.strategy-card-value{
+    font-size:1rem;
+    font-weight:550;
+    line-height:1.2;
+}
+
+.strategy-card-value > *{
+    margin:0;
+}
+
+.strategy-card-content{
+    padding:1rem;
+
+    font-size:.94rem;
+
+    line-height:1.6;
+    color:var(--text-muted);
+}
+
+.strategy-card-content p{
+    margin:.75rem 0;
+}
+
+.strategy-card-content ul{
+    margin:.5rem 0;
+}
+
+.strategy-card-content li{
+    margin:.15rem 0;
+}
+
+.strategy-card-content strong{
+    color:var(--text);
+}
+
+.strategy-time-save{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+}
+
+.strategy-time-value{
+    font-size:1.05rem;
+    font-weight:700;
+}
+
+.strategy-time-subtext{
+    margin-top:.08rem;
+
+    font-size:.72rem;
+
+    color:var(--text-muted);
+}
+
+.strategy-time-value.minor{
+    color:#8fd3ff;
+}
+
+.strategy-time-value.good{
+    color:#56d7ff;
+}
+
+.strategy-time-value.great{
+    color:#58e98d;
+}
+
+.strategy-time-value.major{
+    color:#b88cff;
+}
+
+.strategy-time-value.legendary{
+    color:#ffd76b;
+    text-shadow:0 0 10px rgba(255,215,107,.18);
+}
+
+.strategy-consistency.high{
+    color:#49d17d;
+}
+
+.strategy-consistency.medium{
+    color:#ffcb4d;
+}
+
+.strategy-consistency.low{
+    color:#ff6b6b;
 }
 
 /* Difficulty Pills */
 
-.strategy-card-difficulty {
-    display: inline-flex;
-    align-items: center;
+.strategy-card-difficulty{
+    padding:.18rem .55rem;
 
-    padding: .25rem .7rem;
+    font-size:.72rem;
 
-    border-radius: 999px;
-
-    font-size: .8rem;
-    font-weight: 700;
-    letter-spacing: .03em;
+    border-radius:999px;
 }
 
 .strategy-card-difficulty.beginner {
